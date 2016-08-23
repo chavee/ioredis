@@ -48,9 +48,18 @@ describe('connection', function () {
       connectTimeout: 1,
       retryStrategy: null
     });
+    var pending = 2;
+    redis.on('error', function (err) {
+      expect(err.message).to.eql('connect ETIMEDOUT');
+      if (!--pending) {
+        done();
+      }
+    });
     redis.get('foo', function (err) {
       expect(err.message).to.match(/Connection is closed/);
-      done();
+      if (!--pending) {
+        done();
+      }
     });
   });
 
@@ -77,7 +86,7 @@ describe('connection', function () {
       });
 
       var redis2 = new Redis(6390, { lazyConnect: true, retryStrategy: null });
-      redis2.connect().catch(function (err) {
+      redis2.connect().catch(function () {
         if (!--pending) {
           redis2.disconnect();
           done();
@@ -140,7 +149,7 @@ describe('connection', function () {
   });
 
   describe('connectionName', function () {
-    it('shoud name the connection if options.connectionName is not null', function (done) {
+    it('should name the connection if options.connectionName is not null', function (done) {
       var redis = new Redis({ connectionName: 'niceName' });
       redis.once('ready', function () {
         redis.client('getname', function (err, res) {
@@ -168,7 +177,7 @@ describe('connection', function () {
   });
 
   describe('readOnly', function () {
-    it('shoud send readonly command before other commands', function (done) {
+    it('should send readonly command before other commands', function (done) {
       var called = false;
       var redis = new Redis({ port: 30001, readOnly: true, showFriendlyErrorStack: true });
       var node = new MockServer(30001, function (argv) {

@@ -1,3 +1,117 @@
+<a name="2.3.0"></a>
+# [2.3.0](https://github.com/luin/ioredis/compare/v2.2.0...v2.3.0) (2016-08-11)
+
+
+### Bug Fixes
+
+* reject with general error in Redis#connect ([#354](https://github.com/luin/ioredis/issues/354)) ([8f7a436](https://github.com/luin/ioredis/commit/8f7a436))
+
+
+### Features
+
+* **cluster:** add lazy connect support ([#352](https://github.com/luin/ioredis/issues/352)) ([f1cadff](https://github.com/luin/ioredis/commit/f1cadff))
+
+
+
+<a name="2.2.0"></a>
+# [2.2.0](https://github.com/luin/ioredis/compare/v2.1.0...v2.2.0) (2016-06-28)
+
+
+### Bug Fixes
+
+* **cluster:** ensure node exists before being redirected via an ASK (#341) ([5d9d0d3](https://github.com/luin/ioredis/commit/5d9d0d3))
+
+### Features
+
+* **cluster:** add Cluster#quit() to quit cluster gracefully. (#339) ([68c4ccc](https://github.com/luin/ioredis/commit/68c4ccc)), closes [#315](https://github.com/luin/ioredis/issues/315)
+
+
+
+<a name="2.1.0"></a>
+# [2.1.0](https://github.com/luin/ioredis/compare/v2.0.1...v2.1.0) (2016-06-22)
+
+
+### Bug Fixes
+
+* remove unnecessary unhandled error warnings ([#322](https://github.com/luin/ioredis/issues/322)) ([a1ff2f6](https://github.com/luin/ioredis/commit/a1ff2f6))
+
+
+### Features
+
+* **sentinel:** update sentinels after getting master ([e3f14b2](https://github.com/luin/ioredis/commit/e3f14b2))
+
+
+### Performance Improvements
+
+* **cluster:** improve the performance of calculating slots ([#323](https://github.com/luin/ioredis/issues/323)) ([3ab4e8a](https://github.com/luin/ioredis/commit/3ab4e8a))
+
+
+
+<a name="2.0.1"></a>
+# [2.0.1](https://github.com/luin/ioredis/compare/v2.0.0...v2.0.1) (2016-06-01)
+
+### Bug Fixes
+
+* fix transaction with dropBufferSupport:true([47a2d9a](https://github.com/luin/ioredis/commit/47a2d9a))
+
+<a name="2.0.0"></a>
+# [2.0.0](https://github.com/luin/ioredis/compare/v2.0.0-rc4...v2.0.0) (2016-05-29)
+
+Refer to [Breaking Changes between V1 and V2](https://github.com/luin/ioredis/wiki/Breaking-changes-between-v1-and-v2) for all breaking changes.
+
+Changes since 2.0.0-rc4:
+
+### Features
+
+* include source and database in monitor events ([#308](https://github.com/luin/ioredis/issues/308)) ([a0d5b25](https://github.com/luin/ioredis/commit/a0d5b25))
+
+
+### Performance Improvements
+
+* improve the performance of checking flags ([#312](https://github.com/luin/ioredis/issues/312)) ([236da27](https://github.com/luin/ioredis/commit/236da27))
+
+
+<a name="2.0.0-rc4"></a>
+# [2.0.0-rc4](https://github.com/luin/ioredis/compare/v2.0.0-rc3...v2.0.0-rc4) (2016-05-08)
+
+
+### Bug Fixes
+
+* reconnect when ready check failed([3561fab](https://github.com/luin/ioredis/commit/3561fab))
+* remove data handler when flushing command queue([b1c761c](https://github.com/luin/ioredis/commit/b1c761c))
+* won't emit error again when password is wrong([dfdebfe](https://github.com/luin/ioredis/commit/dfdebfe))
+
+
+### Features
+
+* add dropBufferSupport option to improve the performance ([#293](https://github.com/luin/ioredis/issues/293))([1a8700c](https://github.com/luin/ioredis/commit/1a8700c))
+* add support for Node.js v6 ([#295](https://github.com/luin/ioredis/issues/295))([a87f405](https://github.com/luin/ioredis/commit/a87f405))
+* emit authentication related errors with "error" event([9dc25b4](https://github.com/luin/ioredis/commit/9dc25b4))
+* print logs for unhandled error event([097fdbc](https://github.com/luin/ioredis/commit/097fdbc))
+
+
+### BREAKING CHANGES
+
+* Authentication related errors are emited with "error" event,
+instead of "authError" event
+
+
+
+<a name="2.0.0-rc3"></a>
+# [2.0.0-rc3](https://github.com/luin/ioredis/compare/v2.0.0-rc2...v2.0.0-rc3) (2016-05-02)
+
+
+### Bug Fixes
+
+* fix wrong host not causing error ([25c300e](https://github.com/luin/ioredis/commit/25c300e)), closes [#287](https://github.com/luin/ioredis/issues/287)
+* reconnect when getting fatal error (#292) ([1cf2ac1](https://github.com/luin/ioredis/commit/1cf2ac1))
+
+### Features
+
+* **deps:** upgrade redis-commands package ([df08250](https://github.com/luin/ioredis/commit/df08250))
+
+
+
 <a name="2.0.0-rc2"></a>
 # [2.0.0-rc2](https://github.com/luin/ioredis/compare/v2.0.0-rc1...v2.0.0-rc2) (2016-04-10)
 
