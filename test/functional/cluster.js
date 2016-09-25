@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = require('../../lib/utils');
+var calculateSlot = require('cluster-key-slot');
 var Promise = require('bluebird');
 
 describe('cluster', function () {
@@ -325,7 +326,7 @@ describe('cluster', function () {
         if (argv[0] === 'get' && argv[1] === 'foo') {
           expect(moved).to.eql(false);
           moved = true;
-          return new Error('MOVED ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('MOVED ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
       });
 
@@ -345,7 +346,7 @@ describe('cluster', function () {
           ];
         }
         if (argv[0] === 'get' && argv[1] === 'foo') {
-          return new Error('MOVED ' + utils.calcSlot('foo') + ' 127.0.0.1:30002');
+          return new Error('MOVED ' + calculateSlot('foo') + ' 127.0.0.1:30002');
         }
       });
       var node2 = new MockServer(30002, function (argv) {
@@ -397,7 +398,7 @@ describe('cluster', function () {
         if (argv[0] === 'get' && argv[1] === 'foo') {
           expect(moved).to.eql(false);
           moved = true;
-          return new Error('MOVED ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('MOVED ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
       });
 
@@ -439,7 +440,7 @@ describe('cluster', function () {
               disconnect([node1, node2], done);
             });
           } else {
-            return new Error('ASK ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+            return new Error('ASK ' + calculateSlot('foo') + ' 127.0.0.1:30001');
           }
         }
       });
@@ -449,6 +450,38 @@ describe('cluster', function () {
       ], { lazyConnect: false });
       cluster.get('foo', function () {
         cluster.get('foo');
+      });
+    });
+
+    it('should be able to redirect a command to a unknown node', function (done) {
+      var asked = false;
+      var slotTable = [
+        [0, 16383, ['127.0.0.1', 30002]]
+      ];
+      var node1 = new MockServer(30001, function (argv) {
+        if (argv[0] === 'get' && argv[1] === 'foo') {
+          expect(asked).to.eql(true);
+          return "bar"
+        } else if (argv[0] === 'asking') {
+          asked = true;
+        }
+      });
+      var node2 = new MockServer(30002, function (argv) {
+        if (argv[0] === 'cluster' && argv[1] === 'slots') {
+          return slotTable;
+        }
+        if (argv[0] === 'get' && argv[1] === 'foo') {
+          return new Error('ASK ' + calculateSlot('foo') + ' 127.0.0.1:30001');
+        }
+      });
+
+      var cluster = new Redis.Cluster([
+        { host: '127.0.0.1', port: '30002' }
+      ]);
+      cluster.get('foo', function (err, res) {
+        expect(res).to.eql('bar');
+        cluster.disconnect();
+        disconnect([node1, node2], done);
       });
     });
   });
@@ -530,7 +563,7 @@ describe('cluster', function () {
           ];
         } else if (argv[0] === 'get' && argv[1] === 'foo') {
           redirectTimes += 1;
-          return new Error('ASK ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('ASK ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
       };
       var node1 = new MockServer(30001, argvHandler);
@@ -650,7 +683,7 @@ describe('cluster', function () {
             expect(moved).to.eql(false);
             moved = true;
           }
-          return new Error('MOVED ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('MOVED ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
       });
 
@@ -693,7 +726,7 @@ describe('cluster', function () {
           return slotTable;
         }
         if (argv[1] === 'foo') {
-          return new Error('ASK ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('ASK ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
       });
 
@@ -755,7 +788,7 @@ describe('cluster', function () {
           return slotTable;
         }
         if (argv[0] === 'get' && argv[1] === 'foo') {
-          return new Error('MOVED ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('MOVED ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
       });
 
@@ -836,7 +869,7 @@ describe('cluster', function () {
         }
         if (argv[0] === 'get' && argv[1] === 'foo') {
           moved = true;
-          return new Error('MOVED ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('MOVED ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
         if (argv[0] === 'exec') {
           return new Error('EXECABORT Transaction discarded because of previous errors.');
@@ -889,7 +922,7 @@ describe('cluster', function () {
           return slotTable;
         }
         if (argv[0] === 'get' && argv[1] === 'foo') {
-          return new Error('ASK ' + utils.calcSlot('foo') + ' 127.0.0.1:30001');
+          return new Error('ASK ' + calculateSlot('foo') + ' 127.0.0.1:30001');
         }
         if (argv[0] === 'exec') {
           return new Error('EXECABORT Transaction discarded because of previous errors.');
@@ -1279,6 +1312,40 @@ describe('cluster', function () {
             cluster.disconnect();
             disconnect([node1, node2, node3], done);
           });
+        });
+      });
+    });
+  });
+
+  describe('#quit()', function () {
+    it('should quit the connection gracefully', function (done) {
+      var slotTable = [
+        [0, 1, ['127.0.0.1', 30001]],
+        [2, 16383, ['127.0.0.1', 30002], ['127.0.0.1', 30003]]
+      ];
+      var argvHandler = function (argv) {
+        if (argv[0] === 'cluster' && argv[1] === 'slots') {
+          return slotTable;
+        }
+      };
+      var node1 = new MockServer(30001, argvHandler);
+      var node2 = new MockServer(30002, argvHandler);
+      var node3 = new MockServer(30003, argvHandler);
+
+      var cluster = new Redis.Cluster([
+        { host: '127.0.0.1', port: '30001' }
+      ]);
+
+      var setCommandHandled = false;
+      cluster.on('ready', function () {
+        cluster.set('foo', 'bar', function () {
+          setCommandHandled = true;
+        });
+        cluster.quit(function (err, state) {
+          expect(setCommandHandled).to.eql(true);
+          expect(state).to.eql('OK');
+          cluster.disconnect();
+          disconnect([node1, node2, node3], done);
         });
       });
     });
